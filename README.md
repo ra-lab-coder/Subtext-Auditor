@@ -59,8 +59,7 @@ deepsea-auditor/
     ├── train_model.py                  # Script: Training pipeline (TF-IDF + LogReg)
     ├── evaluate_model.py               # Script: Performance metrics evaluation
     └── requirements.txt                # Python dependencies
-
----
+```
 
 ## 🧪 1. Synthetic Data Generation
 
@@ -72,6 +71,7 @@ The dataset is created using structured templates that encode:
 ```bash
 python generate_data.py
 python split_data.py
+```
 
 ## 📚 2. Model Training
 
@@ -82,10 +82,12 @@ The ML pipeline uses:
 **Train:**
 ```bash
 python src/train.py
+```
 
 **Evaluate:**
 ```bash
 python src/test.py
+```
 
 On synthetic data, the model achieves near-perfect separation (expected due to controlled templates).
 Realistic performance would decrease once more ambiguous samples are added.
@@ -94,6 +96,7 @@ Realistic performance would decrease once more ambiguous samples are added.
 Launch locally:
 ```bash
 streamlit run app.py
+```
 
 The UI allows users to paste any chat snippet.
 The model outputs:
