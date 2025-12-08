@@ -60,6 +60,8 @@ deepsea-auditor/
     ├── evaluate_model.py               # Script: Performance metrics evaluation
     └── requirements.txt                # Python dependencies
 
+---
+
 ## 🧪 1. Synthetic Data Generation
 
 The dataset is created using structured templates that encode:
