@@ -76,8 +76,8 @@ python split_data.py
 ## 📚 2. Model Training
 
 The ML pipeline uses:
-* **TF-IDF vectorizer (1–2 n-grams)
-* **Logistic Regression with class balancing
+* TF-IDF vectorizer (1–2 n-grams)
+* Logistic Regression with class balancing
 
 **Train:**
 ```bash
@@ -100,19 +100,19 @@ streamlit run app.py
 
 The UI allows users to paste any chat snippet.
 The model outputs:
-* **Emotional-Affair Risk Score (0–1)
-* **Verdict (Platonic / Ambiguous / High Risk)
-* **Explanation text
-* **Progress bar visualization
+* Emotional-Affair Risk Score (0–1)
+* Verdict (Platonic / Ambiguous / High Risk)
+* Explanation text
+* Progress bar visualization
 
 
 ## 🔮 Future Improvements
-* **Create more ambiguous and human-like conversation samples
-* **Add metadata: gender, sexual orientation, relational context
-* **Incorporate Sentence-BERT embeddings
-* **Add explainability (highlight which phrases contributed to classification)
-* **Build a multi-turn conversational timeline visualizer
-* **Deploy a full backend with FastAPI + Docker
+* Create more ambiguous and human-like conversation samples
+* Add metadata: gender, sexual orientation, relational context
+* Incorporate Sentence-BERT embeddings
+* Add explainability (highlight which phrases contributed to classification)
+* Build a multi-turn conversational timeline visualizer
+* Deploy a full backend with FastAPI + Docker
 
 ## 📢 Disclaimer
 This tool is a prototype (v1) trained on synthetic data only.
