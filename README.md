@@ -1,19 +1,21 @@
-# 🌊 Deepsea-Friendship-Auditor
+# 🌊 Deepsea-Communication-Orientation-Auditor
 
-> A lightweight NLP system that classifies interpersonal chat messages as **Platonic/Cold** or **Emotional-Affair/Hot** communication based on a sociological theory of “side-by-side vs. face-to-face interactions.”
+> A lightweight NLP system that classifies **interpersonal communication style** as  
+**Task-Oriented / Cold** vs **Emotionally Dependent / Hot**, based on a sociological theory of  
+**“side-by-side vs face-to-face interaction.”**”
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://subtext-auditor-hfpspk6d9snsnernfcgnws.streamlit.app/)
 
 ## 🧠 Project Overview
 
-**Deepsea-Friendship-Auditor** is an end-to-end NLP application that analyzes chat conversations and estimates the likelihood that the interaction resembles emotional-affair style communication rather than platonic friendship.
+**DeepSea Communication Orientation Auditor** is an end-to-end NLP project that analyzes short chat conversations and estimates **how the interaction is oriented**, rather than what the relationship *is*.
 
 This project combines:
-* 🗂️ **Synthetic data generation** via LLM prompting
-* ✨ **Custom sociological labeling theory** (Platonic vs. Emotional-Affair)
-* 🔤 **TF–IDF feature engineering**
-* 🤖 **Logistic Regression classifier**
-* 📊 **Interactive Streamlit web app**
+* 🗂️ Synthetic data generation using structured templates
+* 🧩 A custom sociological labeling framework 
+* 🔤 TF–IDF feature engineering
+* 🤖 Logistic Regression classifier
+* 🖥️ Interactive Streamlit web interface 
 * 📦 **CI/CD Deployment** on Streamlit Cloud
 
 It demonstrates a full ML workflow from **dataset creation → modeling → evaluation → UI deployment**.
@@ -22,19 +24,51 @@ It demonstrates a full ML workflow from **dataset creation → modeling → eval
 
 ## 🔍 Problem Motivation
 
-Most NLP classification tasks focus on sentiment, toxicity, or topic detection—but human relationships contain another dimension:
+Most NLP classifiers focus on:
+* sentiment
+* toxicity
+* topic detection
 
-* 👉 Are two people relating in a platonic, boundary-respecting way?
-* 👉 Or is the communication emotionally intimate and boundary-blurring?
+However, **human communication has another important dimension**:
 
-This project explores that space using the creator’s sociological theory:
+* Are people interacting **side-by-side** (focused on tasks, ideas, or external goals)?  
+* Or **face-to-face** (focused on emotional validation, dependency, and relational closeness)?
 
-| Class | Meaning | Description |
-| :--- | :--- | :--- |
-| **0** | **Platonic / Cold** | **Side-by-side communication.** Focus on ideas, tasks, problem-solving, low emotional dependence. |
-| **1** | **Emotional-Affair / Hot** | **Face-to-face communication.** Emotional validation, dependency, privacy violations, romantic tone. |
+This project explores that dimension.
 
-**Gap:** No public dataset exists for this nuance → this project builds one synthetically using high-quality templates.
+---
+
+## 🧠 Communication Orientation Framework
+
+The classification is based on a **communication-style theory**, not relationship labels.
+
+| Class | Orientation | Description |
+|-----|------------|-------------|
+| 0 | Task-Oriented / Cold | Side-by-side interaction. Focus on ideas, tasks, problem-solving, boundaries, low emotional dependency. |
+| 1 | Emotionally Dependent / Hot | Face-to-face interaction. Emotional validation, prioritization, dependency, privacy-blurring, relational focus. |
+
+⚠️ **Important:**  
+A conversation labeled “Emotionally Dependent” does **not** imply romance or infidelity.  
+It only reflects the *orientation* of communication in that exchange.
+
+---
+
+## 🗂️ Dataset Design
+
+There is no public dataset for communication-orientation classification.  
+This project therefore builds a **synthetic dataset** using carefully designed templates.
+
+The generator includes:
+- task-focused conversations with explicit boundaries
+- emotionally dependent conversations with prioritization and validation
+- **hard negatives** that intentionally blur surface cues
+- shared topics across classes to prevent topic leakage
+
+Each sample includes:
+- `text`
+- `label`
+- `difficulty` (easy / hard)
+- `template_id` (for grouped evaluation)
 
 ---
 
@@ -57,67 +91,68 @@ deepsea-auditor/
     ├── generate_data.py                # Script: synthetic data creator
     ├── split_data.py                   # Script: train/val/test splitter
     ├── train_model.py                  # Script: Training pipeline (TF-IDF + LogReg)
-    ├── evaluate_model.py               # Script: Performance metrics evaluation
-    └── requirements.txt                # Python dependencies
+    ├── test.py               # Script: Performance metrics evaluation
+└── requirements.txt                # Python dependencies
 ```
 
-## 🧪 1. Synthetic Data Generation
+## 🧪 Evaluation Methodology
 
-The dataset is created using structured templates that encode:
-* **Platonic communication patterns** (objective tone, boundaries)
-* **Emotional-affair patterns** (validation, privacy, dependency, emojis)
+Because the data is template-generated, **random train/test splits would cause template leakage.**
 
-**Run:**
+To avoid this, the project uses:
+* **GroupShuffleSplit**
+* Grouped by template_id
+* Ensuring validation and test sets contain **conversation styles never seen during training**
+This produces **honest generalization estimates.**
+
+**Example Validation Performance (group-split)**
+* Accuracy: ~0.80
+* F1-score: ~0.79
+* Errors concentrated in intentionally ambiguous cases
+This reflects the **inherent ambiguity of real interpersonal communication**, not model failure.
+
+---
+
+## 🖥️ Streamlit Application
+Run locally:
 ```bash
-python generate_data.py
-python split_data.py
+streamlit run src/app.py
 ```
+The UI allows users to paste a short chat snippet and returns:
+* **Communication Orientation Score** (probability of emotionally dependent style)
+* Verdict: Task-Oriented / Ambiguous / Emotionally Dependent
+* Confidence visualization
+* Natural-language explanation
 
-## 📚 2. Model Training
+---
 
-The ML pipeline uses:
-* TF-IDF vectorizer (1–2 n-grams)
-* Logistic Regression with class balancing
+## 🔮 Future Work
 
-**Train:**
-```bash
-python src/train.py
-```
+* Increase linguistic diversity and paraphrasing
 
-**Evaluate:**
-```bash
-python src/test.py
-```
+* Add contextual metadata (e.g. professional vs personal context)
 
-On synthetic data, the model achieves near-perfect separation (expected due to controlled templates).
-Realistic performance would decrease once more ambiguous samples are added.
+* Replace TF-IDF with sentence embeddings (SBERT)
 
-## 🖥️ 3. Streamlit Web Application
-Launch locally:
-```bash
-streamlit run app.py
-```
+* Phrase-level explainability (highlight contributing cues)
 
-The UI allows users to paste any chat snippet.
-The model outputs:
-* Emotional-Affair Risk Score (0–1)
-* Verdict (Platonic / Ambiguous / High Risk)
-* Explanation text
-* Progress bar visualization
+* Multi-turn conversation timeline analysis
 
+* Backend deployment with FastAPI + Docker
 
-## 🔮 Future Improvements
-* Create more ambiguous and human-like conversation samples
-* Add metadata: gender, sexual orientation, relational context
-* Incorporate Sentence-BERT embeddings
-* Add explainability (highlight which phrases contributed to classification)
-* Build a multi-turn conversational timeline visualizer
-* Deploy a full backend with FastAPI + Docker
+---
 
-## 📢 Disclaimer
-This tool is a prototype (v1) trained on synthetic data only.
-It is intended for educational, research, and reflective purposes,
-not for psychological evaluation or relationship advice.
+## ⚠️ Disclaimer
+
+This project is a research and educational prototype trained entirely on synthetic data.
+
+It is not:
+* a psychological assessment tool
+* relationship advice
+* a detector of romantic or sexual intent
+Its purpose is to explore communication patterns, not personal relationships.
+
+---
 
 ## 🙋‍♀️ Author
 Designed and built by Ruoxue Wang,

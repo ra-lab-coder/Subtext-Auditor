@@ -1,66 +1,85 @@
 import os
 import streamlit as st
 import joblib
-import numpy as np
 
-MODEL_DIR = "model"
-MODEL_PATH = os.path.join(MODEL_DIR, "deepsea_model_v1.pkl")
+# --- Paths ---
+# Use "models" if that's your repo folder name
+MODEL_DIR = "models"
+MODEL_FILENAME = "deepsea_model_v2.pkl"  # change if your file is named differently
+MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILENAME)
+
 
 @st.cache_resource
-def load_model():
-    model = joblib.load(MODEL_PATH)
-    return model
+def load_model(path: str = MODEL_PATH):
+    return joblib.load(path)
+
 
 def interpret_score(score: float):
     """
-    Interpret probability that the text is Emotional Affair / Hot (class 1).
-    Returns a (verdict, description).
+    Interpret probability that the text is Emotionally Dependent / Hot (class 1).
+    Returns (verdict, description).
     """
     if score < 0.3:
-        verdict = "✅ Likely Platonic / Cold Communication"
+        verdict = "🧊 Mostly Task-Oriented / Side-by-Side"
         desc = (
-            "Model sees this as primarily side-by-side or task-focused. "
-            "Emotional dependence cues are low."
+            "The model sees the interaction as primarily focused on tasks, ideas, or external goals. "
+            "Signals of emotional dependency are low."
         )
     elif score < 0.7:
-        verdict = "🟡 Mixed / Ambiguous Signals"
+        verdict = "🟡 Mixed Orientation / Ambiguous"
         desc = (
-            "Model detects both intellectual and emotional-dependence signals. "
-            "Boundaries may be blurred in places, but pattern is not strongly one-sided."
+            "The model detects a blend of task/idea focus and relational/emotional cues. "
+            "This often happens in supportive friendships or high-frequency collaboration."
         )
     else:
-        verdict = "⚠️ High Emotional-Affair Risk"
+        verdict = "🔥 Mostly Emotionally Dependent / Face-to-Face"
         desc = (
-            "Model detects strong ‘face-to-face’ emotional gratification signals: "
-            "high emotional dependency, privacy/invasion of boundaries, or romantic-style texting patterns."
+            "The model detects strong relational-focus signals such as emotional validation-seeking, "
+            "prioritization of the interaction, dependency language, or boundary-blurring patterns."
         )
+
     return verdict, desc
 
+
 def main():
-    st.set_page_config(page_title="DeepSea Friendship Auditor", page_icon="🌊")
-    st.title("🌊 DeepSea Friendship Auditor")
+    st.set_page_config(page_title="DeepSea Communication Orientation Auditor", page_icon="🌊")
+
+    st.title("🌊 DeepSea Communication Orientation Auditor")
     st.write(
-        "Classifies chat snippets along your theory of **Platonic / Cold** vs **Emotional Affair / Hot** communication.\n\n"
-        "Paste a conversation (e.g., a short chat log between two people). "
-        "The model will estimate how much it resembles an *emotional affair style* interaction."
+        "This app classifies a chat snippet by **communication orientation**:\n"
+        "- **Task-Oriented / Cold (side-by-side)**\n"
+        "- **Emotionally Dependent / Hot (face-to-face)**\n\n"
+        "It does **not** determine what the relationship *is* (friends/partners/etc.). "
+        "It only analyzes the *style* of interaction in the text you provide."
     )
 
-    model = load_model()
+    # Load model
+    try:
+        model = load_model()
+    except FileNotFoundError:
+        st.error(
+            f"Model file not found at: `{MODEL_PATH}`\n\n"
+            "Check that the model exists and that `MODEL_DIR` / `MODEL_FILENAME` match your repo."
+        )
+        return
 
     st.subheader("Input Conversation")
+
     default_example = (
-        "A: Good morning, did you sleep well? ☺️\n"
-        "B: Morning 💕 I was waiting for your message.\n"
-        "A: I didn't tell my partner we talk this much, please don't say anything.\n"
-        "B: It's okay, this is our little world."
+        "A: Morning — quick question about my CV draft.\n"
+        "B: Sure, send it over and I’ll give feedback.\n"
+        "A: Thanks. Also… when you don’t reply I get a bit unsettled.\n"
+        "B: I’m here. Message me whenever you need."
     )
 
     text = st.text_area(
         "Paste chat here:",
         value=default_example,
-        height=200,
-        help="Include multiple lines with speaker labels if you like. "
-             "The model treats the whole block as one document."
+        height=220,
+        help=(
+            "You can include multiple lines with speaker labels. "
+            "The model treats the entire block as one document."
+        ),
     )
 
     if st.button("Analyze"):
@@ -68,34 +87,35 @@ def main():
             st.warning("Please paste some text first.")
             return
 
-        # Model expects an iterable of texts
+        # Predict probability for class 1
         proba = model.predict_proba([text])[0]
-        # Assuming class order is [0, 1]; get probability of class 1
-        # (you can check `model.classes_` if you want to be absolutely sure)
-        p_hot = float(proba[1])
+
+        # Safer than assuming proba[1] is class 1:
+        # map by model.classes_
+        class_to_proba = {int(c): float(p) for c, p in zip(model.classes_, proba)}
+        p_hot = class_to_proba.get(1, float(proba[-1]))
+
         verdict, desc = interpret_score(p_hot)
 
         st.subheader("Result")
-
-        st.markdown(f"**Emotional-Affair Risk Score (Class 1 probability):** `{p_hot:.2f}`")
-
-        st.progress(p_hot)  # visual bar from 0 to 1
-
+        st.markdown(f"**Orientation Score (Class 1 probability):** `{p_hot:.2f}`")
+        st.progress(p_hot)
         st.markdown(f"### {verdict}")
         st.write(desc)
 
-        st.markdown("#### Model Perspective")
+        st.markdown("#### Notes")
         st.write(
-            "- This is **not** a moral judgment, just a statistical pattern match.\n"
-            "- Use it as a **conversation starter** or self-reflection tool, not as final proof of anything.\n"
-            "- Future versions could incorporate conversation history, time gaps, and per-speaker patterns."
+            "- This is a **pattern-based classifier**, not a moral judgment.\n"
+            "- Use it for **reflection / research**, not as proof about a relationship.\n"
+            "- Scores can be sensitive to context, sarcasm, and missing conversation history."
         )
 
     st.markdown("---")
     st.caption(
-        "Prototype NLP tool. For educational and reflective purposes only; "
+        "Prototype tool trained on synthetic data. Educational/research use only; "
         "not psychological, legal, or relationship advice."
     )
+
 
 if __name__ == "__main__":
     main()
