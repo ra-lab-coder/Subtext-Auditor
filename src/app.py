@@ -4,7 +4,7 @@ import joblib
 
 # --- Paths ---
 # Use "models" if that's your repo folder name
-MODEL_DIR = "models"
+MODEL_DIR = "model"
 MODEL_FILENAME = "deepsea_model_v1.pkl"  # change if your file is named differently
 MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILENAME)
 
