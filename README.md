@@ -127,23 +127,16 @@ The UI allows users to paste a short chat snippet and returns:
 ---
 
 ## 🔮 Future Work
-
 * Increase linguistic diversity and paraphrasing
-
 * Add contextual metadata (e.g. professional vs personal context)
-
 * Replace TF-IDF with sentence embeddings (SBERT)
-
 * Phrase-level explainability (highlight contributing cues)
-
 * Multi-turn conversation timeline analysis
-
 * Backend deployment with FastAPI + Docker
 
 ---
 
 ## ⚠️ Disclaimer
-
 This project is a research and educational prototype trained entirely on synthetic data.
 
 It is not:
