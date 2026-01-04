@@ -11,7 +11,7 @@
 **DeepSea Communication Orientation Auditor** is an end-to-end NLP project that analyzes short chat conversations and estimates **how the interaction is oriented**, rather than what the relationship *is*.
 
 This project combines:
-* 🗂️ Synthetic data generation using structured templates
+* 🗂️ Synthetic data generation using LLM APIs (paired samples, same scenario)
 * 🧩 A custom sociological labeling framework 
 * 🔤 TF–IDF feature engineering
 * 🤖 Logistic Regression classifier
@@ -56,19 +56,27 @@ It only reflects the *orientation* of communication in that exchange.
 ## 🗂️ Dataset Design
 
 There is no public dataset for communication-orientation classification.  
-This project therefore builds a **synthetic dataset** using carefully designed templates.
+This project therefore builds a **synthetic dataset** using LLM-based generation (Gemini API).
 
-The generator includes:
-- task-focused conversations with explicit boundaries
-- emotionally dependent conversations with prioritization and validation
-- **hard negatives** that intentionally blur surface cues
-- shared topics across classes to prevent topic leakage
+The generator produces **paired samples**: for each scenario, two conversation versions are generated:
+- **Label 0 (task_oriented)**: Side-by-side interaction focused on problem-solving, tasks, and boundaries
+- **Label 1 (emotionally_dependent)**: Face-to-face interaction focused on emotional validation, dependency, and prioritization
+
+**Key features:**
+- Same scenario/facts across both versions to reduce topic leakage
+- Natural language variation (no rigid templates)
+- Light natural noise (occasional typos, varied message length)
+- Avoids explicit lexical cues that would create shortcuts
 
 Each sample includes:
-- `text`
-- `label`
-- `difficulty` (easy / hard)
-- `template_id` (for grouped evaluation)
+- `text` (6-10 line conversation)
+- `label` (0 or 1)
+- `label_name` (task_oriented or emotionally_dependent)
+- `scenario_id` (for grouped evaluation)
+- `setting` (coworkers/classmates/friends)
+- `difficulty` (easy/medium/hard)
+
+⚠️ **Disclaimer:** Labels are theory-driven and synthetic. They reflect communication orientation patterns, not relationship status or intent.
 
 ---
 
@@ -78,37 +86,39 @@ Each sample includes:
 deepsea-auditor/
 │
 ├── data/
-│   ├── deepsea_conversations.csv   # Raw synthetic dataset
-│   ├── train.csv                   # Training split
-│   ├── val.csv                     # Validation split
-│   └── test.csv                    # Held-out test split
+│   ├── deepsea_conversations_llm_v1.csv   # LLM-generated synthetic dataset
+│   ├── train.csv                           # Training split
+│   ├── val.csv                             # Validation split
+│   └── test.csv                            # Held-out test split
 │
 ├── models/
-│   └── deepsea_model.pkl           # Serialized model artifact
+│   └── deepsea_model.pkl                   # Serialized model artifact
 │
 ├── src/
-    ├── app.py                          # Streamlit UI entry point
-    ├── generate_data.py                # Script: synthetic data creator
-    ├── split_data.py                   # Script: train/val/test splitter
-    ├── train_model.py                  # Script: Training pipeline (TF-IDF + LogReg)
-    ├── test.py               # Script: Performance metrics evaluation
+    ├── app.py                      # Streamlit UI entry point
+    ├── generate_data_llm.py        # Script: LLM-based data generator
+    ├── audit_dataset.py            # Script: Dataset quality audit
+    ├── split_data.py               # Script: train/val/test splitter (grouped by scenario_id)
+    ├── train.py                    # Script: Training pipeline (TF-IDF + LogReg)
+    ├── test.py                     # Script: Performance metrics evaluation
 └── requirements.txt                # Python dependencies
 ```
 
 ## 🧪 Evaluation Methodology
 
-Because the data is template-generated, **random train/test splits would cause template leakage.**
+Because the data is scenario-based, **random train/test splits would cause scenario leakage.**
 
 To avoid this, the project uses:
 * **GroupShuffleSplit**
-* Grouped by `template_id`
-* Ensuring validation and test sets contain **conversation styles never seen during training**
+* Grouped by `scenario_id` (or `template_id` for template-based datasets)
+* Ensuring validation and test sets contain **scenarios never seen during training**
 This produces **honest generalization estimates.**
 
 **Example Validation Performance (group-split)**
 * Accuracy: ~0.80
 * F1-score: ~0.79
 * Errors concentrated in intentionally ambiguous cases
+
 This reflects the **inherent ambiguity of real interpersonal communication**, not model failure.
 
 ---
